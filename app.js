@@ -8,6 +8,7 @@ var mongoose = require("mongoose")
 var basePath = "./templates/"
 var indexPagePath = basePath + "index.html"
 var signupPagePath = basePath + "signupform.html"
+var loginPagePath = basePath + "loginform.html"
 
 app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.json())
@@ -24,8 +25,13 @@ db.on("error", console.error.bind(console, "connection error: "))
 db.once("open", function(){
     console.log("Succesfully connected to the database...")
 })
+
+
 var userSchema = mongoose.Schema({id:String, username:String, password: String, email: String})
 var User = mongoose.model("User", userSchema)
+
+var messageSchema = mongoose.Schema({to:String, from: String, message: String, status:String, date: Date})
+var Message = mongoose.model("Message", messageSchema)
 
 var ID = function () {
   // Math.random should be unique because of its seeding algorithm.
@@ -64,7 +70,24 @@ app.post('/api/adduser', function(req,res){
     })
 })
 
+app.get('/loginform', function(req, res){
+    res.send(swig.renderFile(loginPagePath, {title: "Login In Page"}))
+})
 
+app.post('/api/login', function(req, res) {
+    User.find({username:req.body.user, password: req.body.pass}, function(err, data) {
+        if(err) {
+            console.log(err)
+        } else {
+            console.log("login: " + data)
+            if(data == "") {
+                res.send("Found no user " + req.body.user)
+            } else {
+                res.send("User authenticated - authorize access")
+            }
+        }
+    })
+})
 
 app.get('/api/allusers', function(req, res) {
     User.find({}, {username:1}, function(err, data) {

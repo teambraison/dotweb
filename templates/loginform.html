@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block title%} Login Page {% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        $("#signup").click(function(){
+            $.ajax({
+                type: "POST",
+                url: "/api/login",
+                data: {
+                    user: $("#username").val(),
+                    pass: $("#password").val(),
+                },
+                success: function(data) {
+                    $("#result").html(data)
+                }
+            })
+        })
+    })
+</script>
+{% endblock %}
+
+{% block content %}
+
+<p>username: <input type="text" id="username"></p>
+<p>password: <input type="password" id="password"></p>
+<input type="button" value="Sign up" id="signup"></button></p>
+<div id="result"></div>
+
+{% endblock %}
