@@ -1,4 +1,12 @@
-<html>
-    <head></head>
-    <body>Welcome to {{title}}</body>
-</html>
+{% extends "layout.html" %}
+
+{% block title%} Index Page {% endblock %}
+
+{% block content %}
+
+
+{{welcome_message}}
+
+This is the official page of DOT
+
+{% endblock %}

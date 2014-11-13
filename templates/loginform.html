@@ -5,7 +5,7 @@
 {% block scripts %}
 <script>
     $(document).ready(function() {
-        $("#signup").click(function(){
+        $("#login").click(function(){
             $.ajax({
                 type: "POST",
                 url: "/api/login",
@@ -14,7 +14,12 @@
                     pass: $("#password").val(),
                 },
                 success: function(data) {
-                    $("#result").html(data)
+                    if(data == "user authenticated") {
+                        window.location.href = "/"
+                    } else {
+                       $("#result").html(data)
+                    }
+               //     $("#result").html(data)
                 }
             })
         })
@@ -26,7 +31,7 @@
 
 <p>username: <input type="text" id="username"></p>
 <p>password: <input type="password" id="password"></p>
-<input type="button" value="Sign up" id="signup"></button></p>
+<input type="button" value="Log in" id="login"></button></p>
 <div id="result"></div>
 
 {% endblock %}
