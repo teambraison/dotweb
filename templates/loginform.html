@@ -14,9 +14,12 @@
                     pass: $("#password").val(),
                 },
                 success: function(data) {
+                    alert(data)
                     if(data == "user authenticated") {
+                        alert("You have been authenticated")
                         window.location.href = "/"
                     } else {
+                        alert("Cannot find you, please try again")
                        $("#result").html(data)
                     }
                //     $("#result").html(data)

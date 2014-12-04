@@ -1,0 +1,124 @@
+{% extends "layout.html" %}
+
+{% block title%} Index Page {% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.socket.io/socket.io-1.2.1.js"></script>
+<script>
+
+    var socket = io()
+    var session_id
+    var user_id
+    var contacts = []
+    var selected_user_name
+    var selected_user_id
+    $(document).ready(function(){
+        $("#client1login").click(function(){
+            $.ajax({
+                type: "POST",
+                url: "/api/login",
+                data: {
+                    user: $("#client1username").val(),
+                    pass: $("#client1password").val(),
+                },
+                success: function(data) {
+                    if(data.error == "") {
+                        session_id = data.user_sessionid
+                        user_id = data.user_id
+                        $("#client1messagearea").val($("#client1username").val() + " is logged in with session id " + session_id)
+                        socket.emit("join", {user_name:$("#client1username").val(), user_id: data.user_id})
+                        getFriendsList(session_id)
+                        socket.on("new_msg", function(data) {
+                            $("#client1messagearea").val($("#client1messagearea").val() + "\n" + data.username + ": " + data.message)
+                        })
+                        
+                    } else {
+                        alert("Error: " + data.error)
+                    }
+                }
+            })
+        })
+        
+        function resetOptions() {
+            if(contacts.length > 0) {
+                $("#friends").find("option:gt(0)").remove()
+                contacts = []
+            }
+        }
+        
+        function getFriendsList(mysessionid) {
+            $.ajax({
+                type: "POST",
+                url: "/api/allusers",
+                data: {
+                    session_id: mysessionid
+                }, 
+                success: function(data) {
+                    contacts = data.contacts
+//                    resetOptions()
+                    for(var i = 0; i < contacts.length; i++) {
+                        var contact_name = contacts[i].username
+                        var contact_id = contacts[i].userid 
+                        $("#friends").append("<option value=\"" + contact_id + "\">" + contact_name + "</option>")
+                        
+                    }
+                }
+                
+            })
+        }
+        
+        $("#client1sendmessage").click(function() {
+            socket.emit("chat1", $("#client1message").val())
+        })
+        
+        $("#friends").on("change", function() {
+            $("#client1messagearea").val("Changing chat to " + $("#friends :selected").text())
+            selected_user_id = $("#friends").val()
+            selected_user_name = $("#friends :selected").text()
+            
+//            alert("my id: " + user_id + " contact id: " + selected_user_id)
+            
+            $.ajax({
+                type: "POST",
+                url: "/api/message/get",
+                data: {
+                    session_id:session_id,
+                    user_id: user_id,
+                    contact_id: selected_user_id,
+                }, 
+                success: function (data) {
+                    var myMessages = data.messages
+                    for(var i = 0; i < myMessages.length; i++) {
+                        var senderName = ""
+                        if(myMessages[i].sender == user_id) {
+                            senderName = $("#client1username").val()
+                        } else {
+                            senderName = selected_user_name
+                        }
+                        $("#client1messagearea").val($("#client1messagearea").val() + "\n" + senderName + ": " + myMessages[i].content)
+                    }
+                    $("#friends").scrollTop($("#friends")[0].scrollHeight)
+                }
+            })
+            
+        })
+    })
+    
+
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+<div style="width: 45%; float: left;">
+    <p><input type="text" id="client1username" placeholder="username">  <input type="password" id="client1password" placeholder="password">  <input type="button" id="client1login" value="Login"></p>
+    <p><select id="friends" width="50">
+        <option value="">Select a friend</option>
+        </select></p>
+    <p><input type="text" placeholder="Type your message here" size=50 id="client1message">  <input type="button" id="client1sendmessage" value="Send message"></p>
+    <textarea rows=30 cols=50 id="client1messagearea"></textarea>
+</div>
+
+
+{% endblock %}
